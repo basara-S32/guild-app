@@ -143,34 +143,48 @@
     <div class="login-sub">軍団管理システム</div>
     <div class="login-error" id="loginError"></div>
 
-    <!-- ロール選択 -->
+    <!-- ログイン／新規登録 切り替え -->
     <div style="display:flex;gap:8px;margin-bottom:20px">
-      <button id="roleTabLeader" onclick="selectRole('leader')" style="flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;">👑 団長</button>
-      <button id="roleTabMember" onclick="selectRole('member')" style="flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;">⚔️ メンバー</button>
+      <button id="authTabLogin" onclick="switchAuthTab('login')" style="flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;">🔑 ログイン</button>
+      <button id="authTabRegister" onclick="switchAuthTab('register')" style="flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;">📝 新規登録</button>
     </div>
 
-    <!-- 団長ログイン -->
-    <div id="leaderLoginArea">
+    <!-- ログインフォーム -->
+    <div id="loginArea">
       <div class="form-group">
-        <label class="form-label">団長パスワード</label>
-        <input class="form-input" id="loginLeaderPass" type="password" placeholder="団長パスワードを入力" autocomplete="current-password">
+        <label class="form-label">ID</label>
+        <input class="form-input" id="loginId" placeholder="IDを入力" maxlength="20" autocomplete="username">
       </div>
+      <div class="form-group">
+        <label class="form-label">パスワード</label>
+        <input class="form-input" id="loginPass" type="password" placeholder="パスワードを入力" autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()" style="margin-top:4px">🔑 ログイン</button>
+      <div style="text-align:center;font-size:10px;color:#64748b;margin-top:12px">初めての方は「新規登録」タブへ</div>
     </div>
 
-    <!-- メンバーログイン -->
-    <div id="memberLoginArea" style="display:none">
+    <!-- 新規登録フォーム -->
+    <div id="registerArea" style="display:none">
       <div class="form-group">
-        <label class="form-label">あなたの名前</label>
-        <input class="form-input" id="loginMemberName" placeholder="名前を入力（未登録でも可）" maxlength="20" autocomplete="username">
+        <label class="form-label">ID（ログインに使用）</label>
+        <input class="form-input" id="regId" placeholder="半角英数字・記号（最大20文字）" maxlength="20">
       </div>
       <div class="form-group">
-        <label class="form-label">メンバーパスワード</label>
-        <input class="form-input" id="loginMemberPass" type="password" placeholder="メンバーパスワードを入力" autocomplete="current-password">
+        <label class="form-label">表示名（ゲーム内の名前）</label>
+        <input class="form-input" id="regName" placeholder="例：すりつぶ聖" maxlength="20">
       </div>
+      <div class="form-group">
+        <label class="form-label">パスワード</label>
+        <input class="form-input" id="regPass" type="password" placeholder="4文字以上">
+      </div>
+      <div class="form-group">
+        <label class="form-label">団長コード（団長になる場合のみ）</label>
+        <input class="form-input" id="regLeaderCode" type="password" placeholder="団長コードを持っている場合のみ入力">
+      </div>
+      <button class="btn btn-success" onclick="doRegister()" style="margin-top:4px">📝 登録してログイン</button>
+      <div style="text-align:center;font-size:10px;color:#64748b;margin-top:12px">団長コードは管理者から受け取ってください</div>
     </div>
 
-    <button class="btn btn-primary" onclick="doLogin()" style="margin-top:4px">⚔ ログイン</button>
-    <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:16px">パスワードは団長から受け取ってください</div>
   </div>
 </div>
 
@@ -229,10 +243,34 @@
 
 <!-- マイページ（メンバー用） -->
 <div id="page-mypage" class="page">
+  <!-- アカウント設定 -->
   <div class="card">
-    <div class="card-title">👤 自分の情報</div>
-    <div id="mypageNotFound" style="display:none;color:var(--muted);font-size:12px;margin-bottom:12px">
-      ⚠️ あなたのプロフィールがまだ登録されていません。団長に登録を依頼するか、下のフォームで自己申請してください。
+    <div class="card-title">🔑 アカウント設定</div>
+    <div style="font-size:11px;color:#64748b;margin-bottom:10px">現在のID: <span id="mypageCurrentId" style="color:#00c6ff;font-weight:700"></span></div>
+    <div class="form-group">
+      <label class="form-label">新しいID（変更する場合のみ）</label>
+      <input class="form-input" id="mypageNewId" placeholder="新しいIDを入力" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">表示名</label>
+      <input class="form-input" id="mypageDisplayName" placeholder="ゲーム内の名前" maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">新しいパスワード（変更する場合のみ）</label>
+      <input class="form-input" id="mypageNewPass" type="password" placeholder="新しいパスワード（4文字以上）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">新しいパスワード（確認）</label>
+      <input class="form-input" id="mypageNewPassConfirm" type="password" placeholder="もう一度入力">
+    </div>
+    <button class="btn btn-gold" onclick="saveAccountSettings()" style="margin-bottom:8px">🔑 アカウント設定を保存</button>
+  </div>
+
+  <!-- プロフィール -->
+  <div class="card">
+    <div class="card-title">👤 ゲームプロフィール</div>
+    <div id="mypageNotFound" style="display:none;color:#64748b;font-size:12px;margin-bottom:12px">
+      ⚠️ プロフィールがまだ登録されていません。下のフォームで入力してください。
     </div>
     <div class="form-group">
       <label class="form-label">絵文字アイコン</label>
@@ -262,7 +300,7 @@
       <label class="form-label">参加可能時間帯（複数選択可）</label>
       <div class="time-grid" id="mypageTimeGrid"></div>
     </div>
-    <button class="btn btn-primary" onclick="saveMypageProfile()">💾 自分の情報を保存</button>
+    <button class="btn btn-primary" onclick="saveMypageProfile()">💾 プロフィールを保存</button>
   </div>
 </div>
 
@@ -436,60 +474,70 @@ let state = {
 };
 let tempChoices = [];
 
-// ===== LOGIN =====
-let currentUser = null;   // { name, role: 'leader'|'member' }
-let selectedRole = 'leader';
+// ===== LOGIN / AUTH =====
+let currentUser = null; // { id, name, role:'leader'|'member' }
+let authTab = 'login';
 
-function selectRole(role) {
-  selectedRole = role;
-  document.getElementById('leaderLoginArea').style.display = role==='leader' ? '' : 'none';
-  document.getElementById('memberLoginArea').style.display  = role==='member' ? '' : 'none';
-
-  const lBtn = document.getElementById('roleTabLeader');
-  const mBtn = document.getElementById('roleTabMember');
-  if (role === 'leader') {
-    lBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;';
-    mBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;';
-  } else {
-    mBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;';
-    lBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;';
-  }
+function switchAuthTab(tab) {
+  authTab = tab;
+  const isLogin = tab === 'login';
+  document.getElementById('loginArea').style.display    = isLogin ? '' : 'none';
+  document.getElementById('registerArea').style.display = isLogin ? 'none' : '';
+  const lBtn = document.getElementById('authTabLogin');
+  const rBtn = document.getElementById('authTabRegister');
+  lBtn.style.cssText = `flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:${isLogin?'linear-gradient(135deg,#00c6ff,#0090ff)':'transparent'};color:${isLogin?'#000':'#64748b'};border:${isLogin?'none':'1px solid #1e3a5f'};`;
+  rBtn.style.cssText = `flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:${!isLogin?'linear-gradient(135deg,#10b981,#059669)':'transparent'};color:${!isLogin?'#fff':'#64748b'};border:${!isLogin?'none':'1px solid #1e3a5f'};`;
   document.getElementById('loginError').style.display = 'none';
 }
 
 function doLogin() {
-  const errEl = document.getElementById('loginError');
-  errEl.style.display = 'none';
+  const id   = document.getElementById('loginId').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!id)   { showLoginError('IDを入力してください'); return; }
+  if (!pass) { showLoginError('パスワードを入力してください'); return; }
 
-  fbGetOnce('auth', data => {
-    const leaderPw = (data && data.leaderPassword) || 'leader2024';
-    const memberPw = (data && data.memberPassword) || 'guild2024';
+  fbGetOnce('users', users => {
+    if (!users || !users[id]) { showLoginError('IDが見つかりません'); return; }
+    const u = users[id];
+    if (u.password !== pass) { showLoginError('パスワードが違います'); return; }
+    loginSuccess({ id, name: u.name, role: u.role });
+  });
+}
 
-    if (selectedRole === 'leader') {
-      const pass = document.getElementById('loginLeaderPass').value;
-      if (!pass) { showLoginError('パスワードを入力してください'); return; }
-      if (pass !== leaderPw) { showLoginError('団長パスワードが違います'); return; }
-      loginSuccess({ name:'団長', role:'leader' });
+function doRegister() {
+  const id   = document.getElementById('regId').value.trim();
+  const name = document.getElementById('regName').value.trim();
+  const pass = document.getElementById('regPass').value;
+  const code = document.getElementById('regLeaderCode').value;
 
-    } else {
-      const name = document.getElementById('loginMemberName').value.trim();
-      const pass = document.getElementById('loginMemberPass').value;
-      if (!name) { showLoginError('名前を入力してください'); return; }
-      if (!pass) { showLoginError('パスワードを入力してください'); return; }
-      if (pass !== memberPw) { showLoginError('メンバーパスワードが違います'); return; }
+  if (!id)          { showLoginError('IDを入力してください'); return; }
+  if (!/^[a-zA-Z0-9_\-\.]{1,20}$/.test(id)) { showLoginError('IDは半角英数字・_・-・.のみ使用できます'); return; }
+  if (!name)        { showLoginError('表示名を入力してください'); return; }
+  if (pass.length < 4) { showLoginError('パスワードは4文字以上にしてください'); return; }
 
-      // 未登録なら自動で新規登録
-      const existing = state.members.find(m => m.name === name);
+  fbGetOnce('auth', authData => {
+    const leaderCode = (authData && authData.leaderCode) || 'leader2024';
+    const role = (code === leaderCode) ? 'leader' : 'member';
+
+    fbGetOnce('users', users => {
+      if (users && users[id]) { showLoginError('このIDはすでに使われています'); return; }
+
+      // ユーザー登録
+      const newUser = { id, name, password: pass, role, createdAt: Date.now() };
+      fbSet('users/' + id, newUser);
+
+      // メンバーリストにも追加
+      const existing = state.members.find(m => m.id === id);
       if (!existing) {
-        const newMember = { id: Date.now().toString(), name, emoji: '⚔️', power: '', vessel: '', timeSlots: [] };
-        state.members.push(newMember);
+        const member = { id, name, emoji: '⚔️', power: '', vessel: '', timeSlots: [] };
+        state.members.push(member);
         const obj = {};
         state.members.forEach(m => { obj[m.id] = m; });
         fbSet('members', obj);
       }
 
-      loginSuccess({ name, role:'member' });
-    }
+      loginSuccess({ id, name, role });
+    });
   });
 }
 
@@ -503,7 +551,7 @@ function loginSuccess(user) {
   currentUser = user;
   sessionStorage.setItem('guildUser', JSON.stringify(user));
   document.getElementById('loginScreen').style.display = 'none';
-  document.getElementById('headerUsername').textContent = user.role==='leader' ? '👑 団長' : '⚔️ '+user.name;
+  document.getElementById('headerUsername').textContent = user.role==='leader' ? '👑 '+user.name : '⚔️ '+user.name;
   applyPermissions();
   checkPasswordAge();
   renderAll();
@@ -513,22 +561,20 @@ function doLogout() {
   currentUser = null;
   sessionStorage.removeItem('guildUser');
   document.getElementById('loginScreen').style.display = 'flex';
-  document.getElementById('loginLeaderPass').value = '';
-  document.getElementById('loginMemberPass').value = '';
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginPass').value = '';
   document.getElementById('loginError').style.display = 'none';
+  switchAuthTab('login');
 }
 
 function applyPermissions() {
   const isLeader = currentUser && currentUser.role === 'leader';
-  // 団長のみ表示
   ['tab-home','tab-members','tab-stats','tab-settings'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isLeader ? '' : 'none';
   });
-  // マイページはメンバーのみ表示
   const mypageTab = document.getElementById('tab-mypage');
   if (mypageTab) mypageTab.style.display = isLeader ? 'none' : '';
-
   if (!isLeader) {
     switchTab('rollcall', document.getElementById('tab-rollcall'));
     renderMypagePage();
@@ -537,27 +583,116 @@ function applyPermissions() {
   }
 }
 
+// アカウント設定保存
+function saveAccountSettings() {
+  if (!currentUser) return;
+  const newId   = document.getElementById('mypageNewId').value.trim();
+  const newName = document.getElementById('mypageDisplayName').value.trim();
+  const newPass = document.getElementById('mypageNewPass').value;
+  const newPassC= document.getElementById('mypageNewPassConfirm').value;
+
+  if (newId && !/^[a-zA-Z0-9_\-\.]{1,20}$/.test(newId)) { showToast('IDは半角英数字・_・-・.のみ使用できます','error'); return; }
+  if (newPass && newPass.length < 4) { showToast('パスワードは4文字以上にしてください','error'); return; }
+  if (newPass && newPass !== newPassC) { showToast('パスワードが一致しません','error'); return; }
+
+  const targetId = newId || currentUser.id;
+
+  fbGetOnce('users/' + currentUser.id, userData => {
+    if (!userData) { showToast('ユーザーデータが見つかりません','error'); return; }
+
+    const updated = {
+      ...userData,
+      id:       targetId,
+      name:     newName || userData.name,
+      password: newPass  || userData.password,
+    };
+
+    // IDが変わる場合は古いIDを削除して新IDで保存
+    if (newId && newId !== currentUser.id) {
+      fbGetOnce('users', users => {
+        if (users && users[newId]) { showToast('このIDはすでに使われています','error'); return; }
+        fbSet('users/' + currentUser.id, null);
+        fbSet('users/' + newId, updated);
+
+        // membersも更新
+        const mIdx = state.members.findIndex(m => m.id === currentUser.id);
+        if (mIdx >= 0) {
+          state.members[mIdx].id   = newId;
+          state.members[mIdx].name = updated.name;
+          const obj = {}; state.members.forEach(m=>{ obj[m.id]=m; });
+          fbSet('members', obj);
+        }
+        currentUser = { id: newId, name: updated.name, role: currentUser.role };
+        sessionStorage.setItem('guildUser', JSON.stringify(currentUser));
+        document.getElementById('headerUsername').textContent = (currentUser.role==='leader'?'👑 ':'⚔️ ')+currentUser.name;
+        document.getElementById('mypageCurrentId').textContent = newId;
+        document.getElementById('mypageNewId').value = '';
+        document.getElementById('mypageNewPass').value = '';
+        document.getElementById('mypageNewPassConfirm').value = '';
+        showToast('アカウント設定を更新しました ☁️');
+      });
+    } else {
+      fbSet('users/' + currentUser.id, updated);
+      if (newName) {
+        const mIdx = state.members.findIndex(m => m.id === currentUser.id);
+        if (mIdx >= 0) {
+          state.members[mIdx].name = newName;
+          const obj = {}; state.members.forEach(m=>{ obj[m.id]=m; });
+          fbSet('members', obj);
+        }
+        currentUser.name = newName;
+        sessionStorage.setItem('guildUser', JSON.stringify(currentUser));
+        document.getElementById('headerUsername').textContent = (currentUser.role==='leader'?'👑 ':'⚔️ ')+newName;
+      }
+      document.getElementById('mypageNewPass').value = '';
+      document.getElementById('mypageNewPassConfirm').value = '';
+      showToast('アカウント設定を更新しました ☁️');
+    }
+  });
+}
+
+// Enterキーでログイン
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') {
+    if (authTab === 'login') doLogin(); else doRegister();
+  }
+});
+
+function fbGetOnce(path, cb) {
+  if (!window._db) {
+    setTimeout(() => {
+      if (window._db) window._onValue(window._ref(window._db, path), snap => cb(snap.val()), {onlyOnce:true});
+      else cb(null);
+    }, 1000);
+    return;
+  }
+  window._onValue(window._ref(window._db, path), snap => cb(snap.val()), {onlyOnce:true});
+}
+
+
 // ===== MYPAGE =====
 function renderMypagePage() {
   if (!currentUser || currentUser.role === 'leader') return;
-  const name = currentUser.name;
-  const m = state.members.find(x => x.name === name);
 
+  // アカウント情報
+  const idEl = document.getElementById('mypageCurrentId');
+  if (idEl) idEl.textContent = currentUser.id;
+  const nameEl = document.getElementById('mypageDisplayName');
+  if (nameEl) nameEl.value = currentUser.name;
+
+  const m = state.members.find(x => x.id === currentUser.id);
   const notFound = document.getElementById('mypageNotFound');
   if (notFound) notFound.style.display = m ? 'none' : 'block';
 
-  // フォームに現在の値をセット
   document.getElementById('mypagePower').value  = m ? (m.power  || '') : '';
   document.getElementById('mypageVessel').value = m ? (m.vessel || '') : '';
   document.getElementById('mypageEmoji').value  = m ? (m.emoji  || '⚔️') : '⚔️';
 
-  // 絵文字ハイライト
   const currentEmoji = m ? (m.emoji || '⚔️') : '⚔️';
   document.querySelectorAll('#mypageEmojiPicker span').forEach(s => {
-    s.style.filter = s.textContent === currentEmoji ? 'drop-shadow(0 0 6px var(--accent))' : '';
+    s.style.filter = s.textContent === currentEmoji ? 'drop-shadow(0 0 6px #00c6ff)' : '';
   });
 
-  // 時間帯グリッド
   const timeGrid = document.getElementById('mypageTimeGrid');
   const selected = m ? (m.timeSlots || []) : [];
   timeGrid.innerHTML = state.timeSlots.map(s =>
@@ -573,25 +708,23 @@ function mypageSelectEmoji(el) {
 
 function saveMypageProfile() {
   if (!currentUser || currentUser.role === 'leader') return;
-  const name = currentUser.name;
   const slots = [...document.querySelectorAll('#mypageTimeGrid .time-slot.selected')].map(el=>el.textContent);
-  const existing = state.members.find(x => x.name === name);
+  const existing = state.members.find(x => x.id === currentUser.id);
   const member = {
-    id:     existing ? existing.id : Date.now().toString(),
-    name,
+    id:     currentUser.id,
+    name:   currentUser.name,
     emoji:  document.getElementById('mypageEmoji').value,
     power:  document.getElementById('mypagePower').value,
     vessel: document.getElementById('mypageVessel').value,
     timeSlots: slots
   };
-  const idx = state.members.findIndex(m => m.name === name);
+  const idx = state.members.findIndex(m => m.id === currentUser.id);
   if (idx >= 0) state.members[idx] = member;
   else state.members.push(member);
-
   const obj = {};
   state.members.forEach(m => { obj[m.id] = m; });
   fbSet('members', obj);
-  showToast('自分の情報を保存しました ☁️');
+  showToast('プロフィールを保存しました ☁️');
 }
 
 // Enterキーでログイン
@@ -920,7 +1053,7 @@ function renderRollCall() {
   const isLeader = currentUser && currentUser.role === 'leader';
   const displayMembers = isLeader
     ? state.members
-    : state.members.filter(m => m.name === currentUser?.name);
+    : state.members.filter(m => m.id === currentUser?.id);
 
   if (!isLeader && displayMembers.length === 0) {
     rollList.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">プロフィールが見つかりません<br>マイページで情報を登録してください</div></div>`;
