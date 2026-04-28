@@ -628,21 +628,33 @@ function renderVesselChart() {
 function renderRollStats() {
   const el = document.getElementById('statsRollResult'); if (!el) return;
   const key=selectedKey(), roll=state.rollcall[key]||{};
-  // 日付ラベル更新
   const dateEl = document.getElementById('statsRollDate');
   if (dateEl) dateEl.textContent = fmtDate(selectedDate);
   if (!state.questions.length||!state.members.length) { el.innerHTML='<div style="color:var(--muted);font-size:12px">データなし</div>'; return; }
-  const bclr=['var(--success)','var(--gold)','#8b5cf6','var(--danger)','var(--accent)','#f97316','#ec4899','#6366f1'];
+  const bclr=['#10b981','#fbbf24','#a78bfa','#f87171','#00c6ff','#fb923c','#f472b6','#818cf8'];
   el.innerHTML=state.questions.map(q=>{
     const ans={};
     state.members.forEach(m=>{ const a=roll[m.id]?.[q.id]; if(a) ans[a]=(ans[a]||0)+1; });
     const order=(q.choices||[]).map(c=>c.label);
     const sorted=[...Object.entries(ans)].sort((a,b)=>order.indexOf(a[0])-order.indexOf(b[0]));
-    const unanswered=state.members.length-Object.values(ans).reduce((a,b)=>a+b,0);
-    return `<div style="margin-bottom:14px">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px">${q.text}</div>
-      ${sorted.map(([a,c],i)=>`<div class="bar-row" style="margin-bottom:4px"><div class="bar-label" style="width:70px">${a}</div><div class="bar-track" style="height:18px"><div class="bar-fill" style="width:${c/state.members.length*100}%;background:${bclr[i%8]}"><span class="bar-count">${c}</span></div></div></div>`).join('')}
-      ${unanswered>0?`<div style="font-size:10px;color:var(--muted)">未回答: ${unanswered}名</div>`:''}
+    const total=Object.values(ans).reduce((a,b)=>a+b,0);
+    const unanswered=state.members.length-total;
+    return `<div style="margin-bottom:18px">
+      <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">${q.text}</div>
+      ${sorted.map(([a,c],i)=>{
+        const pct=Math.round(c/state.members.length*100);
+        const barW=Math.max(c/state.members.length*100,2);
+        return `<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+            <span style="font-size:12px;font-weight:700;color:${bclr[i%8]}">${a}</span>
+            <span style="font-size:13px;font-weight:900;color:${bclr[i%8]}">${c}名 <span style="font-size:10px;opacity:.7">(${pct}%)</span></span>
+          </div>
+          <div style="height:22px;background:var(--surface2);border-radius:6px;overflow:hidden;border:1px solid ${bclr[i%8]}30">
+            <div style="width:${barW}%;height:100%;background:${bclr[i%8]};border-radius:6px;transition:width .5s ease;opacity:.85"></div>
+          </div>
+        </div>`;
+      }).join('')}
+      ${unanswered>0?`<div style="font-size:11px;color:var(--muted);margin-top:2px">⚠ 未回答: ${unanswered}名</div>`:'<div style="font-size:11px;color:var(--success)">✅ 全員回答済み</div>'}
     </div>`;
   }).join('');
 }
