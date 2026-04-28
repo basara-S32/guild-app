@@ -902,7 +902,18 @@ function renderRollCall() {
   if (!state.members.length) { rollList.innerHTML=`<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">メンバーを追加してください</div></div>`; return; }
   if (!state.questions.length) { rollList.innerHTML=`<div class="empty"><div class="empty-icon">❓</div><div class="empty-text">設定タブで質問を追加してください</div></div>`; return; }
 
-  rollList.innerHTML = state.members.map(m => {
+  // メンバーは自分の行だけ、団長は全員
+  const isLeader = currentUser && currentUser.role === 'leader';
+  const displayMembers = isLeader
+    ? state.members
+    : state.members.filter(m => m.name === currentUser?.name);
+
+  if (!isLeader && displayMembers.length === 0) {
+    rollList.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">プロフィールが見つかりません<br>マイページで情報を登録してください</div></div>`;
+    return;
+  }
+
+  rollList.innerHTML = displayMembers.map(m => {
     const answers = roll[m.id] || {};
     return `<div class="roll-card">
       <div class="roll-member">${m.emoji||'⚔️'} ${m.name}</div>
