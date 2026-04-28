@@ -145,8 +145,8 @@
 
     <!-- ロール選択 -->
     <div style="display:flex;gap:8px;margin-bottom:20px">
-      <button id="roleTabLeader" class="btn btn-primary" onclick="selectRole('leader')" style="flex:1;padding:10px;font-size:12px">👑 団長</button>
-      <button id="roleTabMember" class="btn btn-outline" onclick="selectRole('member')" style="flex:1;padding:10px;font-size:12px">⚔️ メンバー</button>
+      <button id="roleTabLeader" onclick="selectRole('leader')" style="flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:linear-gradient(135deg,var(--accent),#0090ff);color:#000;">👑 団長</button>
+      <button id="roleTabMember" onclick="selectRole('member')" style="flex:1;padding:10px;font-size:12px;border:1px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:transparent;color:var(--muted);">⚔️ メンバー</button>
     </div>
 
     <!-- 団長ログイン -->
@@ -444,8 +444,20 @@ function selectRole(role) {
   selectedRole = role;
   document.getElementById('leaderLoginArea').style.display = role==='leader' ? '' : 'none';
   document.getElementById('memberLoginArea').style.display  = role==='member' ? '' : 'none';
-  document.getElementById('roleTabLeader').className = 'btn ' + (role==='leader' ? 'btn-primary' : 'btn-outline');
-  document.getElementById('roleTabMember').className = 'btn ' + (role==='member' ? 'btn-primary' : 'btn-outline');
+
+  const lBtn = document.getElementById('roleTabLeader');
+  const mBtn = document.getElementById('roleTabMember');
+  if (role === 'leader') {
+    lBtn.style.background = 'linear-gradient(135deg,var(--accent),#0090ff)';
+    lBtn.style.color = '#000';
+    mBtn.style.background = 'transparent';
+    mBtn.style.color = 'var(--muted)';
+  } else {
+    mBtn.style.background = 'linear-gradient(135deg,var(--accent),#0090ff)';
+    mBtn.style.color = '#000';
+    lBtn.style.background = 'transparent';
+    lBtn.style.color = 'var(--muted)';
+  }
   document.getElementById('loginError').style.display = 'none';
 }
 
@@ -605,7 +617,17 @@ document.addEventListener('keydown', e => {
 });
 
 function fbGetOnce(path, cb) {
-  if (!window._db) { setTimeout(()=>fbGetOnce(path,cb), 300); return; }
+  if (!window._db) {
+    // Firebase未接続 → デフォルト値でフォールバック
+    setTimeout(() => {
+      if (window._db) {
+        window._onValue(window._ref(window._db, path), snap => cb(snap.val()), {onlyOnce:true});
+      } else {
+        cb(null); // それでも繋がらなければデフォルト値使用
+      }
+    }, 1000);
+    return;
+  }
   window._onValue(window._ref(window._db, path), snap => cb(snap.val()), {onlyOnce:true});
 }
 
