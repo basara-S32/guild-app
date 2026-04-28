@@ -237,7 +237,7 @@
 
 <div id="page-members" class="page">
   <input class="search-bar" type="text" placeholder="メンバーを検索..." oninput="renderMembers(this.value)">
-  <button class="btn btn-primary" style="margin-bottom:12px" onclick="openAddMember()">＋ メンバーを追加</button>
+  <div id="memberAddBtn" style="margin-bottom:12px"><button class="btn btn-primary" onclick="openAddMember()">＋ メンバーを追加</button></div>
   <div id="memberList"></div>
 </div>
 
@@ -569,12 +569,18 @@ function doLogout() {
 
 function applyPermissions() {
   const isLeader = currentUser && currentUser.role === 'leader';
-  ['tab-home','tab-members','tab-stats','tab-settings'].forEach(id => {
+  // 団長のみ表示
+  ['tab-home','tab-stats','tab-settings'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.style.display = isLeader ? '' : 'none';
   });
+  // メンバー一覧は全員見れる（編集・削除は団長のみ）
+  const membersTab = document.getElementById('tab-members');
+  if (membersTab) membersTab.style.display = '';
+  // マイページはメンバーのみ表示
   const mypageTab = document.getElementById('tab-mypage');
   if (mypageTab) mypageTab.style.display = isLeader ? 'none' : '';
+
   if (!isLeader) {
     switchTab('rollcall', document.getElementById('tab-rollcall'));
     renderMypagePage();
@@ -958,6 +964,11 @@ function updateHomeStats() {
 
 // ===== MEMBERS =====
 function renderMembers(search='') {
+  const isLeader = currentUser && currentUser.role === 'leader';
+  // 追加ボタンの表示切り替え
+  const addBtn = document.getElementById('memberAddBtn');
+  if (addBtn) addBtn.style.display = isLeader ? '' : 'none';
+
   const list = document.getElementById('memberList');
   let members = search ? state.members.filter(m=>m.name.includes(search)) : state.members;
   if (members.length === 0) {
@@ -972,10 +983,10 @@ function renderMembers(search='') {
         <div class="member-meta"><span class="tag tag-power">⚔️${m.power?Number(m.power).toLocaleString():'未設定'}</span><span class="tag tag-vessel" style="margin-left:4px">🏺Lv${m.vessel||'?'}</span></div>
         <div class="member-meta" style="margin-top:4px">⏰ ${(m.timeSlots||[]).join('・')||'未設定'}</div>
       </div>
-      <div class="member-actions">
+      ${isLeader ? `<div class="member-actions">
         <button class="btn btn-outline btn-sm" onclick="editMember('${m.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}')">🗑</button>
-      </div>
+      </div>` : ''}
     </div>`).join('');
 }
 
