@@ -594,19 +594,6 @@ function saveMypageProfile() {
   showToast('自分の情報を保存しました ☁️');
 }
 
-// セッション復元
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('guildUser');
-  if (saved) {
-    try {
-      currentUser = JSON.parse(saved);
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('headerUsername').textContent = currentUser.role==='leader' ? '👑 団長' : '⚔️ '+currentUser.name;
-      applyPermissions();
-    } catch(e) { sessionStorage.removeItem('guildUser'); }
-  }
-});
-
 // Enterキーでログイン
 document.addEventListener('keydown', e => {
   if (e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') doLogin();
@@ -689,7 +676,16 @@ function checkPasswordAge() {
 
 // セッション復元
 window.addEventListener('DOMContentLoaded', () => {
-
+  const saved = sessionStorage.getItem('guildUser');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('headerUsername').textContent = currentUser.role==='leader' ? '👑 団長' : '⚔️ '+currentUser.name;
+      applyPermissions();
+    } catch(e) { sessionStorage.removeItem('guildUser'); }
+  }
+});
 
 function fbSet(path, data) {
   if (!window._db) return;
