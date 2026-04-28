@@ -161,7 +161,7 @@
     <div id="memberLoginArea" style="display:none">
       <div class="form-group">
         <label class="form-label">あなたの名前</label>
-        <select class="form-select" id="loginMemberName"><option value="">-- 名前を選択 --</option></select>
+        <input class="form-input" id="loginMemberName" placeholder="名前を入力（未登録でも可）" maxlength="20" autocomplete="username">
       </div>
       <div class="form-group">
         <label class="form-label">メンバーパスワード</label>
@@ -464,11 +464,22 @@ function doLogin() {
       loginSuccess({ name:'団長', role:'leader' });
 
     } else {
-      const name = document.getElementById('loginMemberName').value;
+      const name = document.getElementById('loginMemberName').value.trim();
       const pass = document.getElementById('loginMemberPass').value;
-      if (!name) { showLoginError('名前を選択してください'); return; }
+      if (!name) { showLoginError('名前を入力してください'); return; }
       if (!pass) { showLoginError('パスワードを入力してください'); return; }
       if (pass !== memberPw) { showLoginError('メンバーパスワードが違います'); return; }
+
+      // 未登録なら自動で新規登録
+      const existing = state.members.find(m => m.name === name);
+      if (!existing) {
+        const newMember = { id: Date.now().toString(), name, emoji: '⚔️', power: '', vessel: '', timeSlots: [] };
+        state.members.push(newMember);
+        const obj = {};
+        state.members.forEach(m => { obj[m.id] = m; });
+        fbSet('members', obj);
+      }
+
       loginSuccess({ name, role:'member' });
     }
   });
@@ -575,6 +586,19 @@ function saveMypageProfile() {
   showToast('自分の情報を保存しました ☁️');
 }
 
+// セッション復元
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('guildUser');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('headerUsername').textContent = currentUser.role==='leader' ? '👑 団長' : '⚔️ '+currentUser.name;
+      applyPermissions();
+    } catch(e) { sessionStorage.removeItem('guildUser'); }
+  }
+});
+
 // Enterキーでログイン
 document.addEventListener('keydown', e => {
   if (e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') doLogin();
@@ -647,26 +671,6 @@ function checkPasswordAge() {
 
 // セッション復元
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('guildUser');
-  if (saved) {
-    try {
-      currentUser = JSON.parse(saved);
-      document.getElementById('loginScreen').style.display='none';
-      document.getElementById('headerUsername').textContent = currentUser.role==='leader' ? '👑 団長' : '⚔️ '+currentUser.name;
-      applyPermissions();
-    } catch(e) { sessionStorage.removeItem('guildUser'); }
-  }
-  // メンバー名前セレクト更新
-  updateMemberSelect();
-});
-
-function updateMemberSelect() {
-  const sel = document.getElementById('loginMemberName');
-  if (!sel) return;
-  const current = sel.value;
-  sel.innerHTML = '<option value="">-- 名前を選択 --</option>' +
-    state.members.map(m=>`<option value="${m.name}" ${m.name===current?'selected':''}>${m.emoji||'⚔️'} ${m.name}</option>`).join('');
-}
 
 
 function fbSet(path, data) {
@@ -763,7 +767,6 @@ function copyUrl() {
 function renderAll() {
   document.getElementById('todayDate').textContent = fmtDate(new Date());
   document.getElementById('memberCountBadge').textContent = state.members.length + '人';
-  updateMemberSelect();
   updateHomeStats();
   renderMembers();
   renderRollCall();
