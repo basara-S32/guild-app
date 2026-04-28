@@ -120,27 +120,85 @@
   .q-title span{flex:1;word-break:break-all;}
   .option-tag{background:rgba(0,198,255,.1);border:1px solid rgba(0,198,255,.3);color:var(--accent);padding:4px 10px;border-radius:20px;font-size:11px;margin:3px;display:inline-block;}
   .sync-banner{background:rgba(0,198,255,.08);border:1px solid rgba(0,198,255,.2);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+
+  /* ===== LOGIN ===== */
+  #loginScreen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .login-box{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px 24px;box-shadow:0 0 40px rgba(0,198,255,.1);}
+  .login-logo{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--accent);text-align:center;letter-spacing:3px;margin-bottom:6px;text-shadow:0 0 20px rgba(0,198,255,.5);}
+  .login-sub{text-align:center;font-size:12px;color:var(--muted);margin-bottom:28px;}
+  .login-error{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:12px;display:none;}
+
+  /* ===== PASSWORD CHANGE BANNER ===== */
+  .pw-banner{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(245,158,11,.1));border:1px solid rgba(239,68,68,.4);border-radius:10px;padding:12px 14px;margin-bottom:12px;display:none;}
+  .pw-banner-title{font-size:12px;font-weight:700;color:#f87171;margin-bottom:4px;}
+  .pw-banner-text{font-size:11px;color:var(--muted);}
 </style>
 </head>
 <body>
 
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">⚔ GUILD CMD</div>
+    <div class="login-sub">軍団管理システム</div>
+    <div class="login-error" id="loginError"></div>
+
+    <!-- ロール選択 -->
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button id="roleTabLeader" class="btn btn-primary" onclick="selectRole('leader')" style="flex:1;padding:10px;font-size:12px">👑 団長</button>
+      <button id="roleTabMember" class="btn btn-outline" onclick="selectRole('member')" style="flex:1;padding:10px;font-size:12px">⚔️ メンバー</button>
+    </div>
+
+    <!-- 団長ログイン -->
+    <div id="leaderLoginArea">
+      <div class="form-group">
+        <label class="form-label">団長パスワード</label>
+        <input class="form-input" id="loginLeaderPass" type="password" placeholder="団長パスワードを入力" autocomplete="current-password">
+      </div>
+    </div>
+
+    <!-- メンバーログイン -->
+    <div id="memberLoginArea" style="display:none">
+      <div class="form-group">
+        <label class="form-label">あなたの名前</label>
+        <select class="form-select" id="loginMemberName"><option value="">-- 名前を選択 --</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">メンバーパスワード</label>
+        <input class="form-input" id="loginMemberPass" type="password" placeholder="メンバーパスワードを入力" autocomplete="current-password">
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="doLogin()" style="margin-top:4px">⚔ ログイン</button>
+    <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:16px">パスワードは団長から受け取ってください</div>
+  </div>
+</div>
+
 <header class="header">
   <div class="header-title">⚔ GUILD CMD</div>
   <div class="header-right">
+    <div style="font-size:11px;color:var(--muted)" id="headerUsername"></div>
     <div class="sync-dot syncing" id="syncDot"></div>
     <div class="header-badge" id="memberCountBadge">0人</div>
+    <button class="btn btn-outline btn-sm" onclick="doLogout()" style="font-size:10px;padding:3px 8px;color:var(--muted)">logout</button>
   </div>
 </header>
 
-<div class="tabs">
-  <button class="tab active" onclick="switchTab('home',this)"><span class="tab-icon">🏠</span>ホーム</button>
-  <button class="tab" onclick="switchTab('members',this)"><span class="tab-icon">👥</span>メンバー</button>
-  <button class="tab" onclick="switchTab('rollcall',this)"><span class="tab-icon">📋</span>点呼</button>
-  <button class="tab" onclick="switchTab('stats',this)"><span class="tab-icon">📊</span>統計</button>
-  <button class="tab" onclick="switchTab('settings',this)"><span class="tab-icon">⚙️</span>設定</button>
+<div class="tabs" id="mainTabs">
+  <button class="tab active" id="tab-home" onclick="switchTab('home',this)"><span class="tab-icon">🏠</span>ホーム</button>
+  <button class="tab" id="tab-members" onclick="switchTab('members',this)"><span class="tab-icon">👥</span>メンバー</button>
+  <button class="tab" id="tab-rollcall" onclick="switchTab('rollcall',this)"><span class="tab-icon">📋</span>点呼</button>
+  <button class="tab" id="tab-mypage" onclick="switchTab('mypage',this)"><span class="tab-icon">👤</span>マイページ</button>
+  <button class="tab" id="tab-stats" onclick="switchTab('stats',this)"><span class="tab-icon">📊</span>統計</button>
+  <button class="tab" id="tab-settings" onclick="switchTab('settings',this)"><span class="tab-icon">⚙️</span>設定</button>
 </div>
 
 <div id="page-home" class="page active">
+  <!-- パスワード変更アナウンス -->
+  <div class="pw-banner" id="pwBanner">
+    <div class="pw-banner-title">🔐 パスワード変更のお知らせ</div>
+    <div class="pw-banner-text" id="pwBannerText"></div>
+  </div>
   <div class="sync-banner">🔴 LIVE <span id="syncStatus">Firebase に接続中...</span></div>
   <div class="today-banner">
     <div>
@@ -167,6 +225,45 @@
   <input class="search-bar" type="text" placeholder="メンバーを検索..." oninput="renderMembers(this.value)">
   <button class="btn btn-primary" style="margin-bottom:12px" onclick="openAddMember()">＋ メンバーを追加</button>
   <div id="memberList"></div>
+</div>
+
+<!-- マイページ（メンバー用） -->
+<div id="page-mypage" class="page">
+  <div class="card">
+    <div class="card-title">👤 自分の情報</div>
+    <div id="mypageNotFound" style="display:none;color:var(--muted);font-size:12px;margin-bottom:12px">
+      ⚠️ あなたのプロフィールがまだ登録されていません。団長に登録を依頼するか、下のフォームで自己申請してください。
+    </div>
+    <div class="form-group">
+      <label class="form-label">絵文字アイコン</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="mypageEmojiPicker">
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">⚔️</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">🛡️</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">🏹</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">🔮</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">🗡️</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">💀</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">🔥</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">⚡</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">🌙</span>
+        <span style="font-size:22px;cursor:pointer" onclick="mypageSelectEmoji(this)">👑</span>
+      </div>
+      <input type="hidden" id="mypageEmoji" value="⚔️">
+    </div>
+    <div class="form-group">
+      <label class="form-label">戦力値</label>
+      <input class="form-input" id="mypagePower" type="number" placeholder="例：150000" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">器レベル</label>
+      <input class="form-input" id="mypageVessel" type="number" placeholder="例：85" min="1" max="200">
+    </div>
+    <div class="form-group">
+      <label class="form-label">参加可能時間帯（複数選択可）</label>
+      <div class="time-grid" id="mypageTimeGrid"></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveMypageProfile()">💾 自分の情報を保存</button>
+  </div>
 </div>
 
 <div id="page-rollcall" class="page">
@@ -203,6 +300,31 @@
 </div>
 
 <div id="page-settings" class="page">
+  <div class="card">
+    <div class="card-title">🔐 パスワード管理</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">3ヶ月ごとに変更してください。変更後は全員に通知してください。</div>
+    <div id="pwInfo" style="font-size:11px;margin-bottom:12px;padding:8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)"></div>
+    <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px">👑 団長パスワード</div>
+    <div class="form-group">
+      <label class="form-label">新しい団長パスワード</label>
+      <input class="form-input" id="newLeaderPwInput" type="password" placeholder="新パスワード（4文字以上）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">確認</label>
+      <input class="form-input" id="newLeaderPwConfirm" type="password" placeholder="もう一度入力">
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--success);margin:12px 0 8px">⚔️ メンバーパスワード</div>
+    <div class="form-group">
+      <label class="form-label">新しいメンバーパスワード</label>
+      <input class="form-input" id="newMemberPwInput" type="password" placeholder="新パスワード（4文字以上）">
+    </div>
+    <div class="form-group">
+      <label class="form-label">確認</label>
+      <input class="form-input" id="newMemberPwConfirm" type="password" placeholder="もう一度入力">
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-bottom:8px">※変更しない方は空欄のままでOK</div>
+    <button class="btn btn-gold" onclick="changePassword()">🔐 パスワードを変更</button>
+  </div>
   <div class="card">
     <div class="card-title">⏰ 参加可能時間帯</div>
     <div id="timeSlotList"></div>
@@ -314,7 +436,239 @@ let state = {
 };
 let tempChoices = [];
 
-// ===== FIREBASE =====
+// ===== LOGIN =====
+let currentUser = null;   // { name, role: 'leader'|'member' }
+let selectedRole = 'leader';
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('leaderLoginArea').style.display = role==='leader' ? '' : 'none';
+  document.getElementById('memberLoginArea').style.display  = role==='member' ? '' : 'none';
+  document.getElementById('roleTabLeader').className = 'btn ' + (role==='leader' ? 'btn-primary' : 'btn-outline');
+  document.getElementById('roleTabMember').className = 'btn ' + (role==='member' ? 'btn-primary' : 'btn-outline');
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function doLogin() {
+  const errEl = document.getElementById('loginError');
+  errEl.style.display = 'none';
+
+  fbGetOnce('auth', data => {
+    const leaderPw = (data && data.leaderPassword) || 'leader2024';
+    const memberPw = (data && data.memberPassword) || 'guild2024';
+
+    if (selectedRole === 'leader') {
+      const pass = document.getElementById('loginLeaderPass').value;
+      if (!pass) { showLoginError('パスワードを入力してください'); return; }
+      if (pass !== leaderPw) { showLoginError('団長パスワードが違います'); return; }
+      loginSuccess({ name:'団長', role:'leader' });
+
+    } else {
+      const name = document.getElementById('loginMemberName').value;
+      const pass = document.getElementById('loginMemberPass').value;
+      if (!name) { showLoginError('名前を選択してください'); return; }
+      if (!pass) { showLoginError('パスワードを入力してください'); return; }
+      if (pass !== memberPw) { showLoginError('メンバーパスワードが違います'); return; }
+      loginSuccess({ name, role:'member' });
+    }
+  });
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('loginError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function loginSuccess(user) {
+  currentUser = user;
+  sessionStorage.setItem('guildUser', JSON.stringify(user));
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('headerUsername').textContent = user.role==='leader' ? '👑 団長' : '⚔️ '+user.name;
+  applyPermissions();
+  checkPasswordAge();
+  renderAll();
+}
+
+function doLogout() {
+  currentUser = null;
+  sessionStorage.removeItem('guildUser');
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginLeaderPass').value = '';
+  document.getElementById('loginMemberPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+function applyPermissions() {
+  const isLeader = currentUser && currentUser.role === 'leader';
+  // 団長のみ表示
+  ['tab-home','tab-members','tab-stats','tab-settings'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isLeader ? '' : 'none';
+  });
+  // マイページはメンバーのみ表示
+  const mypageTab = document.getElementById('tab-mypage');
+  if (mypageTab) mypageTab.style.display = isLeader ? 'none' : '';
+
+  if (!isLeader) {
+    switchTab('rollcall', document.getElementById('tab-rollcall'));
+    renderMypagePage();
+  } else {
+    switchTab('home', document.getElementById('tab-home'));
+  }
+}
+
+// ===== MYPAGE =====
+function renderMypagePage() {
+  if (!currentUser || currentUser.role === 'leader') return;
+  const name = currentUser.name;
+  const m = state.members.find(x => x.name === name);
+
+  const notFound = document.getElementById('mypageNotFound');
+  if (notFound) notFound.style.display = m ? 'none' : 'block';
+
+  // フォームに現在の値をセット
+  document.getElementById('mypagePower').value  = m ? (m.power  || '') : '';
+  document.getElementById('mypageVessel').value = m ? (m.vessel || '') : '';
+  document.getElementById('mypageEmoji').value  = m ? (m.emoji  || '⚔️') : '⚔️';
+
+  // 絵文字ハイライト
+  const currentEmoji = m ? (m.emoji || '⚔️') : '⚔️';
+  document.querySelectorAll('#mypageEmojiPicker span').forEach(s => {
+    s.style.filter = s.textContent === currentEmoji ? 'drop-shadow(0 0 6px var(--accent))' : '';
+  });
+
+  // 時間帯グリッド
+  const timeGrid = document.getElementById('mypageTimeGrid');
+  const selected = m ? (m.timeSlots || []) : [];
+  timeGrid.innerHTML = state.timeSlots.map(s =>
+    `<div class="time-slot ${selected.includes(s)?'selected':''}" onclick="this.classList.toggle('selected')">${s}</div>`
+  ).join('');
+}
+
+function mypageSelectEmoji(el) {
+  document.querySelectorAll('#mypageEmojiPicker span').forEach(s => s.style.filter='');
+  el.style.filter = 'drop-shadow(0 0 6px var(--accent))';
+  document.getElementById('mypageEmoji').value = el.textContent;
+}
+
+function saveMypageProfile() {
+  if (!currentUser || currentUser.role === 'leader') return;
+  const name = currentUser.name;
+  const slots = [...document.querySelectorAll('#mypageTimeGrid .time-slot.selected')].map(el=>el.textContent);
+  const existing = state.members.find(x => x.name === name);
+  const member = {
+    id:     existing ? existing.id : Date.now().toString(),
+    name,
+    emoji:  document.getElementById('mypageEmoji').value,
+    power:  document.getElementById('mypagePower').value,
+    vessel: document.getElementById('mypageVessel').value,
+    timeSlots: slots
+  };
+  const idx = state.members.findIndex(m => m.name === name);
+  if (idx >= 0) state.members[idx] = member;
+  else state.members.push(member);
+
+  const obj = {};
+  state.members.forEach(m => { obj[m.id] = m; });
+  fbSet('members', obj);
+  showToast('自分の情報を保存しました ☁️');
+}
+
+// Enterキーでログイン
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('loginScreen').style.display!=='none') doLogin();
+});
+
+function fbGetOnce(path, cb) {
+  if (!window._db) { setTimeout(()=>fbGetOnce(path,cb), 300); return; }
+  window._onValue(window._ref(window._db, path), snap => cb(snap.val()), {onlyOnce:true});
+}
+
+// パスワード変更（設定タブ・団長のみ）
+function changePassword() {
+  const lp  = document.getElementById('newLeaderPwInput').value;
+  const lpc = document.getElementById('newLeaderPwConfirm').value;
+  const mp  = document.getElementById('newMemberPwInput').value;
+  const mpc = document.getElementById('newMemberPwConfirm').value;
+
+  if (lp && lp !== lpc) { showToast('団長パスワードが一致しません','error'); return; }
+  if (mp && mp !== mpc) { showToast('メンバーパスワードが一致しません','error'); return; }
+  if (lp && lp.length < 4) { showToast('4文字以上にしてください','error'); return; }
+  if (mp && mp.length < 4) { showToast('4文字以上にしてください','error'); return; }
+  if (!lp && !mp) { showToast('変更するパスワードを入力してください','error'); return; }
+
+  fbGetOnce('auth', data => {
+    const updated = {
+      leaderPassword: lp || (data && data.leaderPassword) || 'leader2024',
+      memberPassword: mp || (data && data.memberPassword) || 'guild2024',
+      updatedAt: Date.now()
+    };
+    fbSet('auth', updated);
+    document.getElementById('newLeaderPwInput').value='';
+    document.getElementById('newLeaderPwConfirm').value='';
+    document.getElementById('newMemberPwInput').value='';
+    document.getElementById('newMemberPwConfirm').value='';
+    showToast('パスワードを変更しました ☁️ 全員に通知してください！');
+    renderPwInfo(updated);
+  });
+}
+
+function renderPwInfo(data) {
+  const el = document.getElementById('pwInfo');
+  if (!el || !data) return;
+  const d = data.updatedAt ? fmtDate(new Date(data.updatedAt)) : '未設定';
+  const next = data.updatedAt ? fmtDate(new Date(data.updatedAt + 90*24*60*60*1000)) : '-';
+  el.innerHTML = `<span style="color:var(--muted)">最終変更：</span><span style="color:var(--accent)">${d}</span>　
+    <span style="color:var(--muted)">次回推奨：</span><span style="color:var(--gold)">${next}</span>`;
+}
+
+function checkPasswordAge() {
+  fbGetOnce('auth', data => {
+    if (!data || !data.updatedAt) return;
+    const days = (Date.now() - data.updatedAt) / (1000*60*60*24);
+    const banner = document.getElementById('pwBanner');
+    const text   = document.getElementById('pwBannerText');
+    if (!banner) return;
+    if (days >= 90) {
+      banner.style.display='block';
+      text.textContent = `パスワード設定から${Math.floor(days)}日が経過しました。設定タブから変更して全員に通知してください。`;
+    } else if (days >= 75) {
+      banner.style.display='block';
+      banner.style.background='linear-gradient(135deg,rgba(251,191,36,.12),rgba(249,115,22,.08))';
+      banner.style.borderColor='rgba(251,191,36,.4)';
+      banner.querySelector('.pw-banner-title').textContent='⚠️ パスワード変更もうすぐ';
+      banner.querySelector('.pw-banner-title').style.color='var(--gold)';
+      text.textContent = `パスワード変更まであと${Math.ceil(90-days)}日です。`;
+    }
+    if (currentUser?.role==='leader') renderPwInfo(data);
+  });
+}
+
+// セッション復元
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('guildUser');
+  if (saved) {
+    try {
+      currentUser = JSON.parse(saved);
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('headerUsername').textContent = currentUser.role==='leader' ? '👑 団長' : '⚔️ '+currentUser.name;
+      applyPermissions();
+    } catch(e) { sessionStorage.removeItem('guildUser'); }
+  }
+  // メンバー名前セレクト更新
+  updateMemberSelect();
+});
+
+function updateMemberSelect() {
+  const sel = document.getElementById('loginMemberName');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">-- 名前を選択 --</option>' +
+    state.members.map(m=>`<option value="${m.name}" ${m.name===current?'selected':''}>${m.emoji||'⚔️'} ${m.name}</option>`).join('');
+}
+
+
 function fbSet(path, data) {
   if (!window._db) return;
   window._set(window._ref(window._db, path), data);
@@ -409,9 +763,11 @@ function copyUrl() {
 function renderAll() {
   document.getElementById('todayDate').textContent = fmtDate(new Date());
   document.getElementById('memberCountBadge').textContent = state.members.length + '人';
+  updateMemberSelect();
   updateHomeStats();
   renderMembers();
   renderRollCall();
+  renderMypagePage();
   renderStats();
   renderSettings();
   const urlEl = document.getElementById('shareUrl');
