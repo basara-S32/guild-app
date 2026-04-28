@@ -145,8 +145,8 @@
 
     <!-- ロール選択 -->
     <div style="display:flex;gap:8px;margin-bottom:20px">
-      <button id="roleTabLeader" onclick="selectRole('leader')" style="flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:linear-gradient(135deg,var(--accent),#0090ff);color:#000;">👑 団長</button>
-      <button id="roleTabMember" onclick="selectRole('member')" style="flex:1;padding:10px;font-size:12px;border:1px solid var(--border);border-radius:10px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:transparent;color:var(--muted);">⚔️ メンバー</button>
+      <button id="roleTabLeader" onclick="selectRole('leader')" style="flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;">👑 団長</button>
+      <button id="roleTabMember" onclick="selectRole('member')" style="flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;">⚔️ メンバー</button>
     </div>
 
     <!-- 団長ログイン -->
@@ -448,15 +448,11 @@ function selectRole(role) {
   const lBtn = document.getElementById('roleTabLeader');
   const mBtn = document.getElementById('roleTabMember');
   if (role === 'leader') {
-    lBtn.style.background = 'linear-gradient(135deg,var(--accent),#0090ff)';
-    lBtn.style.color = '#000';
-    mBtn.style.background = 'transparent';
-    mBtn.style.color = 'var(--muted)';
+    lBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;';
+    mBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;';
   } else {
-    mBtn.style.background = 'linear-gradient(135deg,var(--accent),#0090ff)';
-    mBtn.style.color = '#000';
-    lBtn.style.background = 'transparent';
-    lBtn.style.color = 'var(--muted)';
+    mBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:linear-gradient(135deg,#00c6ff,#0090ff);color:#000;';
+    lBtn.style.cssText = 'flex:1;padding:10px;font-size:12px;border:1px solid #1e3a5f;border-radius:10px;font-weight:700;cursor:pointer;font-family:inherit;background:transparent;color:#64748b;';
   }
   document.getElementById('loginError').style.display = 'none';
 }
